@@ -67,7 +67,7 @@ function initBalls(num) {
 var backgroundColor = "white";
 
 //Holes in the border each assigned different color
-var targetNum = 20;
+var targetNum = 10;
 //Declaring array of targets
 var targets = [];
 //target initialization
@@ -75,65 +75,68 @@ function initTargets(num) {
 	targets = [];
 	for(var i = 0; i < targetNum; i++) {
 		var randomSide = generateRandomSide();
+		var randomSize = generateRandomSize();
 		target = {
 			side: randomSide,
-			x: generateRandomX(randomSide),
-			y: generateRandomY(randomSide),
-			size: generateRandomSize(),
+			x: generateRandomX(randomSide, randomSize),
+			y: generateRandomY(randomSide, randomSize),
+			size: randomSize,
             color: generateRandomColors()
         };
-        //Long boolean statement to check whether or not position is valid and recalculate position until valid one is chosen
-        while(((target.side === 1 || target.side === 3) && target.y + target.size > height - border.thickness) || 
-        	((target.side === 2 || target.side === 4) && target.x + target.size > width - border.thickness)) {
-        	target.x = generateRandomX(target.side);
-        	target.y = generateRandomY(target.side);
-        }
         //Minimum distaance between targets
         var minDistance = 50;
-        var isValid = false;
-        for(var j = 0; j < targets.indexOf(target); j++) {
+        for(var j = 0; j < i; j++) {
+        	var isValid = false;
         	while(!isValid) {
         		//Check that targets are not too close together
-    			if(targets[i].side === 1 || targets[i].side === 3) {
-    				if(targets[i].y + targets[i].size - targets[j].y < minDistance) {
-    					if(targets[i].y + targets[i].size - targets[j].y > 0) {
+    			if((target.side === 1 && targets[j].side === 1) || (target.side === 3 && targets[j].side === 3)) {
+    				if(target.y + target.size - targets[j].y < minDistance) {
+    					if(target.y + target.size - targets[j].y > -target.size + minDistance) {
     						isValid = false;
-    						targets[i].side = generateRandomSide();
-    						targets[i].x = generateRandomX(targets[i].side);
-    						targets[i].y = generateRandomY(targets[i].side);
+    						target.side = generateRandomSide();
+    						target.x = generateRandomX(target.side, target.size);
+    						target.y = generateRandomY(target.side, target.size);
+    					}
+    					else if(targets[j].y + targets[j].size - target.y < minDistance) {
+    						isValid = false;
+    						target.side = generateRandomSide();
+    						target.x = generateRandomX(target.side, target.size);
+    						target.y = generateRandomY(target.side, target.size);
+    					}
+    					else {
+    						isValid = true;
     					}
     				}
-    				else if(targets[j].y + targets[j].size - targets[i].y < minDistance) {
-    					if(targets[j].y + targets[j].size - targets[i].y > 0) {
-    						isValid = false;
-    						targets[i].side = generateRandomSide();
-    						targets[i].x = generateRandomX(targets[i].side);
-    						targets[i].y = generateRandomY(targets[i].side);
-    					}
+    				else {
+    					isValid = true;
     				}
     			}
-    			else if(targets[i].side === 2 || targets[i].side === 4) {
-    				if(targets[i].x + targets[i].size - targets[j].x < minDistance) {
-    					if(targets[i].x + targets[i].size - targets[j].x > 0) {
+    			else if((target.side === 2 && targets[j].side === 2) || (target.side === 4 && targets[j].side === 4)) {
+    				if(target.x + target.size - targets[j].x < minDistance) {
+    					if(target.x + target.size - targets[j].x > -target.size + minDistance) {
     						isValid = false;
-    						targets[i].side = generateRandomSide();
-    						targets[i].x = generateRandomX(targets[i].side);
-    						targets[i].y = generateRandomY(targets[i].side);
+    						target.side = generateRandomSide();
+    						target.x = generateRandomX(target.side, target.size);
+    						target.y = generateRandomY(target.side, target.size);
+    					}
+    					else if(targets[j].x + targets[j].size - target.x < minDistance) {
+    						isValid = false;
+    						target.side = generateRandomSide();
+    						target.x = generateRandomX(target.side, target.size);
+    						target.y = generateRandomY(target.side, target.size);
+    					}
+    					else {
+    						isValid = true;
     					}
     				}
-    				else if(targets[j].x + targets[j].size - targets[i].x < minDistance) {
-    					if(targets[j].x + targets[j].size - targets[i].x > 0) {
-    						isValid = false;
-    						targets[i].side = generateRandomSide();
-    						targets[i].x = generateRandomX(targets[i].side);
-    						targets[i].y = generateRandomY(targets[i].side);
-    					}
+    				else {
+    					isValid = true;
     				}
     			}
     			else {
     				isValid = true;
     			}
-    		}
+       		}
         }
         targets.push(target);
 	}
@@ -156,9 +159,9 @@ function generateRandomSide() {
 }
 
 //generate random x value of target positions
-function generateRandomX(side) {
+function generateRandomX(side, size) {
 	if(side === 2 || side === 4) {
-		return Math.random() * (width - 2 * border.thickness) + border.thickness;
+		return Math.random() * (width - 2 * border.thickness - size) + border.thickness;
 	}
 	else if(side === 1) {
 		return 0;
@@ -169,9 +172,9 @@ function generateRandomX(side) {
 }
 
 //generate random y value of target positions
-function generateRandomY(side) {
+function generateRandomY(side, size) {
 	if(side === 1 || side === 3) {
-		return Math.random() * (height - 2 * border.thickness) + border.thickness;
+		return Math.random() * (height - 2 * border.thickness - size) + border.thickness;
 	}
 	else if(side === 2) {
 		return 0;
