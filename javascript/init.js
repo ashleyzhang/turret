@@ -34,12 +34,15 @@ function startGame() {
     	endAngle: Math.PI * (ballNum - 1) / (ballNum / 2),
 		spinSpeed: Math.PI / (ballNum * 2)
 	};
+
 	border = {
 		thickness: 50,
 		color: "grey"
 	};
+
 	initBalls(1);
 	initTargets(1);
+
 	nextFrame();
 }
     
@@ -55,7 +58,7 @@ function initBalls(num) {
 			x: 0,
 			y: 0,
             numBalls: ballNum,
-            //Not exact radius because otherwise need recursive but close approximation
+            //Not exact radius because otherwise infinite recursive but close approximation
             radius: (turret.radius - (turret.radius * Math.sin(Math.PI / ballNum))) * Math.sin(Math.PI / ballNum),
             color: generateRandomColors()
         };
@@ -67,7 +70,7 @@ function initBalls(num) {
 var backgroundColor = "white";
 
 //Holes in the border each assigned different color
-var targetNum = 10;
+var targetNum = 20;
 //Declaring array of targets
 var targets = [];
 //target initialization
@@ -76,86 +79,68 @@ function initTargets(num) {
 	for(var i = 0; i < targetNum; i++) {
 		var randomSide = generateRandomSide();
 		var randomSize = generateRandomSize();
+		var randomColor;
+		if(i < colors.length) {
+			randomColor = colors[i];
+		}
+		else {
+			randomColor = generateRandomColors();
+		}
 		target = {
 			side: randomSide,
 			x: generateRandomX(randomSide, randomSize),
 			y: generateRandomY(randomSide, randomSize),
 			size: randomSize,
-            color: generateRandomColors()
+            color: randomColor
         };
-        //Minimum distaance between targets
-        var minDistance = 50;
-        for(var j = 0; j < i; j++) {
-        	var isValid = false;
-        	while(!isValid) {
-        		//Check that targets are not too close together
-    			if((target.side === 1 && targets[j].side === 1) || (target.side === 3 && targets[j].side === 3)) {
-    				if(target.y + target.size - targets[j].y < minDistance) {
-    					if(target.y + target.size - targets[j].y > -target.size + minDistance) {
-    						isValid = false;
-    						target.side = generateRandomSide();
-    						target.x = generateRandomX(target.side, target.size);
-    						target.y = generateRandomY(target.side, target.size);
-    					}
-    					else if(targets[j].y + targets[j].size - target.y < minDistance) {
-    						isValid = false;
-    						target.side = generateRandomSide();
-    						target.x = generateRandomX(target.side, target.size);
-    						target.y = generateRandomY(target.side, target.size);
-    					}
-    					else {
-    						isValid = true;
-    					}
-    				}
-    				else {
-    					isValid = true;
-    				}
-    			}
-    			else if((target.side === 2 && targets[j].side === 2) || (target.side === 4 && targets[j].side === 4)) {
-    				if(target.x + target.size - targets[j].x < minDistance) {
-    					if(target.x + target.size - targets[j].x > -target.size + minDistance) {
-    						isValid = false;
-    						target.side = generateRandomSide();
-    						target.x = generateRandomX(target.side, target.size);
-    						target.y = generateRandomY(target.side, target.size);
-    					}
-    					else if(targets[j].x + targets[j].size - target.x < minDistance) {
-    						isValid = false;
-    						target.side = generateRandomSide();
-    						target.x = generateRandomX(target.side, target.size);
-    						target.y = generateRandomY(target.side, target.size);
-    					}
-    					else {
-    						isValid = true;
-    					}
-    				}
-    				else {
-    					isValid = true;
-    				}
-    			}
-    			else {
-    				isValid = true;
-    			}
-       		}
-        }
-        targets.push(target);
+
+        //Ensures that distance between targets is greater than given minimum distance
+        var isValidTargetPosition = function(newTarget) {
+			var minDistance = 75;
+			var isValid = true;
+			targets.forEach(function(target) {
+				if (distance(target, newTarget) < minDistance) {
+					isValid = false;
+				}
+			});
+			return isValid;
+		};
+	
+		var tries = 0;
+		while (!isValidTargetPosition(target) && tries < 200) {
+			target.side = generateRandomSide();
+			target.size = generateRandomSize();
+			target.x = generateRandomX(target.side, target.size);
+			target.y = generateRandomY(target.side, target.size);
+			tries++;
+		}
+		if (isValidTargetPosition(target)) {	
+			targets.push(target);
+		}
 	}
 }
+
+//Distance between targets
+function distance(target1, target2) {
+	if(target1.x > target2.x && target1.y === target2.y) {
+		return target1.x - (target2.x + target2.size);
+	}
+	else if(target1.x < target2.x && target1.y === target2.y) {
+		return target2.x - (target1.x + target1.size);
+	} 
+	else if(target1.y > target2.y && target1.x === target2.x) {
+		return target1.y - (target2.y + target2.size);
+	}
+	else if(target1.y < target2.y && target1.x === target2.x) {
+		return target2.y - (target1.y + target1.size);
+	}
+}
+
 //generate random side of wall
 function generateRandomSide() {
-	var num = Math.random();
-	if(num >= 0 && num < 0.25) {
-		return 1;
-	}
-	else if(num >= 0.25 && num < 0.5) {
-		return 2;
-	}
-	else if(num >= 0.5 && num < 0.75) {
-		return 3;
-	}
-	else {
-		return 4;
-	}
+	var sides  = [1, 2, 3, 4];
+	var side = sides[Math.floor(Math.random() * sides.length)];
+	return side;
 }
 
 //generate random x value of target positions
@@ -190,39 +175,42 @@ function generateRandomSize() {
 	return size;
 }
 
+//array of colors used
+var colors = ["lightpink", "lightsalmon", "palegreen", "turquoise", "plum", "palegoldenrod", "powderblue", "slateblue", "orange", "rosybrown"];
+
 //generate random colors of balls
 function generateRandomColors() {
 	var num = Math.random();
 	var color = "";
 	if(num >= 0 && num < 0.1) {
-		color = "lightpink";
+		color = colors[0];
 	}
 	else if(num >= 0.1 && num < 0.2) {
-		color = "lightsalmon";
+		color = colors[1];
 	}
 	else if(num >= 0.2 && num < 0.3) {
-		color = "palegreen";
+		color = colors[2];
 	}
 	else if(num >= 0.3 && num < 0.4) {
-		color = "turquoise";
+		color = colors[3];
 	}
 	else if(num >= 0.4 && num < 0.5) {
-		color = "plum";
+		color = colors[4];
 	}
 	else if(num >= 0.5 && num < 0.6) {
-		color = "palegoldenrod";
+		color = colors[5];
 	}
 	else if(num >= 0.6 && num < 0.7) {
-		color = "powderblue";
+		color = colors[6];
 	}
 	else if(num >= 0.7 && num < 0.8) {
-		color = "slateblue";
+		color = colors[7];
 	}
 	else if(num >= 0.8 && num < 0.9) {
-		color = "orange";
+		color = colors[8];
 	}
 	else {
-		color = "rosybrown";
+		color = colors[9];
 	}
 	return color;
 }

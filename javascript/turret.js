@@ -3,7 +3,10 @@ function nextFrame() {
 	drawFrame();
 	//releases ball when space bar is pressed
 	document.body.onkeyup = function(e) {
-    	if(e.keyCode == 32){
+    	if(e.keyCode === 32){
+    		xVal = balls[0].x;
+			yVal = balls[0].y;
+			releaseAngle = turret.startAngle;
         	releaseBall();
     	}
 	}
@@ -21,7 +24,7 @@ function drawFrame() {
 	//Draw border
 	drawBorder(border.thickness, border.color);
 
-	//Draw turret and balls
+	//Draw balls
 	balls.forEach(function(ball) {
 		drawBall(ball.x, ball.y, ball.radius, ball.color);
 	});
@@ -31,12 +34,14 @@ function drawFrame() {
 		drawTarget(target.x, target.y, target.size, target.color, target.side);
 	});
 
-	//Draw released ball
+	//Draw turret
+    drawTurret(turret.x, turret.y, turret.startAngle, turret.endAngle, turret.radius, turret.color);
+
+    //Draw released ball
 	if(isReleased) {
 		drawBall(readyBall.x, readyBall.y, readyBall.radius, readyBall.color);
-		ballMove()
+		ballMove();
 	}
-    drawTurret(turret.x, turret.y, turret.startAngle, turret.endAngle, turret.radius, turret.color);
 }
 
 //Draws four rectangles on the edge of the screen
@@ -54,7 +59,7 @@ function drawTarget(x, y, size, color, side) {
 	if(side === 1) {
 		context.fillRect(x, y, border.thickness / 2, size);
 		context.fillStyle = backgroundColor;
-		context.fillRect(x + border.thickness / 2, y, border.thickness / 2, size)
+		context.fillRect(x + border.thickness / 2, y, border.thickness / 2, size);
 	}
 	else if(side === 2) {
 		context.fillRect(x, y, size, border.thickness / 2);
@@ -126,15 +131,21 @@ function spinTurret() {
 }
 
 var isReleased;
+var ballSlope;
+var xVal;
+var yVal;
+var releaseAngle;
 //Releases ball from turret
 function releaseBall() {
     readyBall = {
 		x: balls[0].x,
 		y: balls[0].y,
+		speed: 8,
 		numBalls: balls[0].numBalls,
         radius: balls[0].radius,
         color: balls[0].color
     };
+    ballSlope = slope();
 	ballMove();
 	balls.shift();
 	addBall();
@@ -143,6 +154,32 @@ function releaseBall() {
 
 //Change position of ready ball
 function ballMove() {
-	readyBall.x += 5;
-	readyBall.y += 5;
+	//Quadrant 1
+	if(releaseAngle % (2 * Math.PI) >= 0 && releaseAngle % (2 * Math.PI) < Math.PI / 2) {
+		readyBall.x += readyBall.speed;
+		readyBall.y -= readyBall.speed * ballSlope;
+	}
+	//Quadrant 2
+	else if(releaseAngle % (2 * Math.PI) >= Math.PI / 2 && releaseAngle % (2 * Math.PI) < Math.PI) {
+		readyBall.x -= readyBall.speed;
+		readyBall.y -= readyBall.speed * ballSlope;
+	}
+	//Quadrant 3
+	else if(releaseAngle % (2 * Math.PI) >= Math.PI && releaseAngle % (2 * Math.PI) < 3 * Math.PI / 2) {
+		readyBall.x -= readyBall.speed;
+		readyBall.y +=  readyBall.speed * ballSlope;
+	}
+	//Quadrant 4
+	else {
+		readyBall.x += readyBall.speed;
+		readyBall.y += readyBall.speed * ballSlope;
+	}
+}
+
+//Slope of line going through ready ball and center of turret
+function slope() {
+	var turretCenterX = width / 2;
+	var turretCenterY = height / 2;
+	var m = Math.abs((yVal - turretCenterY) / (xVal - turretCenterX));
+	return m;
 }
