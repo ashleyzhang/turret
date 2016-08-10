@@ -25,23 +25,37 @@ var border;
 function startGame() {
     console.log("Game Started");
     // Initialize variables
+    var r;
+    var h;
+    if(height > width) {
+    	r = width / 5;
+    	h = width / 12;
+    }
+    else {
+    	r = height / 5;
+    	h = height / 12;
+    }
+
     turret = {
 		x: width / 2,
 		y: height / 2,
-    	radius: 150,
+    	radius: r,
     	color: "black",
     	startAngle: 0,
     	endAngle: Math.PI * (ballNum - 1) / (ballNum / 2),
-		spinSpeed: Math.PI / (ballNum * 2)
+		spinSpeed: Math.PI / (ballNum * 3)
 	};
 
 	border = {
-		thickness: 50,
+		thickness: h,
 		color: "grey"
 	};
 
 	initBalls(1);
 	initTargets(1);
+
+	//Releases ball when clicked
+	canvas.addEventListener("click", releaseBall);
 
 	nextFrame();
 }
@@ -96,7 +110,7 @@ function initTargets(num) {
 
         //Ensures that distance between targets is greater than given minimum distance
         var isValidTargetPosition = function(newTarget) {
-			var minDistance = 75;
+			var minDistance = balls[0].radius * 3.5;
 			var isValid = true;
 			targets.forEach(function(target) {
 				if (distance(target, newTarget) < minDistance) {
@@ -171,7 +185,7 @@ function generateRandomY(side, size) {
 
 //generate random width of targets
 function generateRandomSize() {
-	var size = Math.random() * 70 + 50;
+	var size = Math.random() * (balls[0].radius * 4) + (balls[0].radius * 3);
 	return size;
 }
 

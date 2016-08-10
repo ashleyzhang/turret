@@ -1,14 +1,8 @@
 function nextFrame() {
 	spinTurret();
 	drawFrame();
-	//releases ball when space bar is pressed
-	document.body.onkeyup = function(e) {
-    	if(e.keyCode === 32){
-    		xVal = balls[0].x;
-			yVal = balls[0].y;
-			releaseAngle = turret.startAngle;
-        	releaseBall();
-    	}
+	if(isReleased) {
+		freeMove();
 	}
 	setTimeout(nextFrame, 25);
 }
@@ -40,7 +34,6 @@ function drawFrame() {
     //Draw released ball
 	if(isReleased) {
 		drawBall(readyBall.x, readyBall.y, readyBall.radius, readyBall.color);
-		ballMove();
 	}
 }
 
@@ -59,22 +52,22 @@ function drawTarget(x, y, size, color, side) {
 	if(side === 1) {
 		context.fillRect(x, y, border.thickness / 2, size);
 		context.fillStyle = backgroundColor;
-		context.fillRect(x + border.thickness / 2, y, border.thickness / 2, size);
+		context.fillRect(x + border.thickness / 2 - 1, y, border.thickness / 2 + 5, size);
 	}
 	else if(side === 2) {
 		context.fillRect(x, y, size, border.thickness / 2);
 		context.fillStyle = backgroundColor;
-		context.fillRect(x, y + border.thickness / 2, size, border.thickness /2);
+		context.fillRect(x, y + border.thickness / 2 - 1, size, border.thickness / 2 + 5);
 	}
 	else if(side === 3) {
 		context.fillRect(x + border.thickness / 2, y, border.thickness / 2, size);
 		context.fillStyle = backgroundColor;
-		context.fillRect(x, y, border.thickness / 2, size);
+		context.fillRect(x - 5, y, border.thickness / 2 + 6, size);
 	}
 	else {
 		context.fillRect(x, y + border.thickness / 2, size, border.thickness / 2);
 		context.fillStyle = backgroundColor;
-		context.fillRect(x, y, size, border.thickness / 2);
+		context.fillRect(x, y - 5, size, border.thickness / 2 + 6);
 	}
 }
 
@@ -131,55 +124,49 @@ function spinTurret() {
 }
 
 var isReleased;
-var ballSlope;
-var xVal;
-var yVal;
 var releaseAngle;
 //Releases ball from turret
 function releaseBall() {
     readyBall = {
 		x: balls[0].x,
 		y: balls[0].y,
-		speed: 8,
+		vx: 0,
+		vy: 0,
 		numBalls: balls[0].numBalls,
         radius: balls[0].radius,
-        color: balls[0].color
+        color: balls[0].color,
+        releaseAngle: (-turret.startAngle + ((2 * Math.PI) - turret.endAngle)) / 2
     };
-    ballSlope = slope();
-	ballMove();
+	//Sets ball velocity
+	var speed = turret.spinSpeed * turret.radius;
+	readyBall.vx = speed * Math.cos(readyBall.releaseAngle);
+	readyBall.vy = speed * Math.sin(readyBall.releaseAngle);
+
 	balls.shift();
 	addBall();
 	isReleased = true;
 }
 
-//Change position of ready ball
-function ballMove() {
-	//Quadrant 1
-	if(releaseAngle % (2 * Math.PI) >= 0 && releaseAngle % (2 * Math.PI) < Math.PI / 2) {
-		readyBall.x += readyBall.speed;
-		readyBall.y -= readyBall.speed * ballSlope;
+//Moves readyBall after released from turret
+function freeMove() {
+	// Bounce off walls
+	if (readyBall.x < readyBall.radius && readyBall.x > -readyBall.radius) {
+		readyBall.x = readyBall.radius;
+		readyBall.vx *= -1;
 	}
-	//Quadrant 2
-	else if(releaseAngle % (2 * Math.PI) >= Math.PI / 2 && releaseAngle % (2 * Math.PI) < Math.PI) {
-		readyBall.x -= readyBall.speed;
-		readyBall.y -= readyBall.speed * ballSlope;
+	if (readyBall.x > width - readyBall.radius && readyBall.x < width + readyBall.radius) {
+		readyBall.x = width - readyBall.radius;
+		readyBall.vx *= -1;
 	}
-	//Quadrant 3
-	else if(releaseAngle % (2 * Math.PI) >= Math.PI && releaseAngle % (2 * Math.PI) < 3 * Math.PI / 2) {
-		readyBall.x -= readyBall.speed;
-		readyBall.y +=  readyBall.speed * ballSlope;
+	if (readyBall.y < readyBall.radius && readyBall.y > -readyBall.radius) {
+		readyBall.y = readyBall.radius;
+		readyBall.vy *= -1;
 	}
-	//Quadrant 4
-	else {
-		readyBall.x += readyBall.speed;
-		readyBall.y += readyBall.speed * ballSlope;
+	if (readyBall.y > height - readyBall.radius && readyBall.y < height + readyBall.radius) {
+		readyBall.y = height - readyBall.radius;
+		readyBall.vy *= -1;
 	}
-}
-
-//Slope of line going through ready ball and center of turret
-function slope() {
-	var turretCenterX = width / 2;
-	var turretCenterY = height / 2;
-	var m = Math.abs((yVal - turretCenterY) / (xVal - turretCenterX));
-	return m;
+	//Change position of ball
+	readyBall.x += readyBall.vx;
+	readyBall.y -= readyBall.vy;
 }
