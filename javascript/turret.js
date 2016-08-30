@@ -19,9 +19,18 @@ function drawFrame() {
 	drawBorder(border.thickness, border.color);
 
 	//Draw balls
-	balls.forEach(function(ball) {
-		drawBall(ball.x, ball.y, ball.radius, ball.color);
-	});
+	if(!isReleased) {
+		//if no ball has been released
+		balls.forEach(function(ball) {
+			drawBall(ball.x, ball.y, ball.radius, ball.color);
+		});
+	}
+	else {
+		//if ball has been released
+		for(var i = 1; i < balls.length; i++) {
+			drawBall(balls[i].x, balls[i].y, balls[i].radius, balls[i].color);
+		}
+	}
 
 	//Draw targets
 	targets.forEach(function(target) {
@@ -49,6 +58,7 @@ function drawBorder(thickness, color) {
 //Draws targets
 function drawTarget(x, y, size, color, side) {
 	context.fillStyle = color;
+	//Tweaked to ensure that white spaces cover border
 	if(side === 1) {
 		context.fillRect(x, y, border.thickness / 2, size);
 		context.fillStyle = backgroundColor;
@@ -124,7 +134,8 @@ function spinTurret() {
 }
 
 var isReleased;
-var releaseAngle;
+var pastBorder;
+var pastBoundary;
 //Releases ball from turret
 function releaseBall() {
     readyBall = {
@@ -135,37 +146,120 @@ function releaseBall() {
 		numBalls: balls[0].numBalls,
         radius: balls[0].radius,
         color: balls[0].color,
-        releaseAngle: (-turret.startAngle + ((2 * Math.PI) - turret.endAngle)) / 2
+        releaseAngle: -turret.startAngle
     };
+
 	//Sets ball velocity
 	var speed = turret.spinSpeed * turret.radius;
 	readyBall.vx = speed * Math.cos(readyBall.releaseAngle);
 	readyBall.vy = speed * Math.sin(readyBall.releaseAngle);
 
-	balls.shift();
-	addBall();
 	isReleased = true;
+
+	pastBorder = false;
+	pastBoundary = false;
 }
 
+var t;
 //Moves readyBall after released from turret
 function freeMove() {
-	// Bounce off walls
-	if (readyBall.x < readyBall.radius && readyBall.x > -readyBall.radius) {
-		readyBall.x = readyBall.radius;
-		readyBall.vx *= -1;
+	//checks if ball is inside a target
+	var inTarget = false;
+	targets.forEach(function(target) {
+		if(target.side === 1) {
+			if(readyBall.x < readyBall.radius + border.thickness) {
+				if(readyBall.y >= target.y + readyBall.radius && readyBall.y <= target.y + target.size - readyBall.radius) {
+					inTarget = true;
+					pastBorder = true;
+					t = target;
+				}
+			}
+		}
+		else if(target.side === 2) {
+			if(readyBall.y < readyBall.radius + border.thickness) {
+				if(readyBall.x >= target.x + readyBall.radius && readyBall.x <= target.x + target.size - readyBall.radius) {
+					inTarget = true;
+					pastBorder = true;
+					t = target;
+				}
+			}
+		}
+		else if(target.side === 3) {
+			if(readyBall.x > width - readyBall.radius - border.thickness) {
+				if(readyBall.y >= target.y + readyBall.radius && readyBall.y <= target.y + target.size - readyBall.radius) {
+					inTarget = true;
+					pastBorder = true;
+					t = target;
+				}
+			}
+		}
+		else {
+			if(readyBall.y > height - readyBall.radius - border.thickness) {
+				if(readyBall.x >= target.x + readyBall.radius && readyBall.x <= target.x + target.size - readyBall.radius) {
+					inTarget = true;
+					pastBorder = true;
+					t = target;
+				}
+			}
+		}
+	});
+
+	//bounce off sides of targets
+	if(!inTarget && pastBorder) {
+		if(t.side === 1 || t.side === 3) {
+			if(readyBall.y < t.y + readyBall.radius) {
+				readyBall.y = t.y + readyBall.radius;
+				readyBall.vy *= -1;
+			}
+			else if(readyBall.y > t.y + t.size - readyBall.radius) {
+				readyBall.y = t.y + t.size - readyBall.radius;
+				readyBall.vy *= -1;
+			}
+		}
+		else if(t.side === 2 || t.side === 4) {
+			if(readyBall.x < t.x + readyBall.radius) {
+				readyBall.x = t.x + readyBall.radius;
+				readyBall.vx *= -1;
+			}
+			else if(readyBall.x > t.x + t.size - readyBall.radius) {
+				readyBall.x = t.x + t.size - readyBall.radius;
+				readyBall.vx *= -1;
+			}
+		}
 	}
-	if (readyBall.x > width - readyBall.radius && readyBall.x < width + readyBall.radius) {
-		readyBall.x = width - readyBall.radius;
-		readyBall.vx *= -1;
+
+	//bounce off walls
+	else if(!inTarget && !pastBorder) {
+		if(readyBall.x < readyBall.radius + border.thickness && readyBall.x > -readyBall.radius + border.thickness) {
+			readyBall.x = readyBall.radius + border.thickness;
+			readyBall.vx *= -1;
+		}
+		if(readyBall.x > width - readyBall.radius - border.thickness && readyBall.x < width + readyBall.radius - border.thickness) {
+			readyBall.x = width - readyBall.radius - border.thickness;
+			readyBall.vx *= -1;
+		}
+		if(readyBall.y < readyBall.radius + border.thickness && readyBall.y > -readyBall.radius + border.thickness) {
+			readyBall.y = readyBall.radius + border.thickness;
+			readyBall.vy *= -1;
+		}
+		if(readyBall.y > height - readyBall.radius - border.thickness && readyBall.y < height + readyBall.radius - border.thickness) {
+			readyBall.y = height - readyBall.radius - border.thickness;
+			readyBall.vy *= -1;
+		}
 	}
-	if (readyBall.y < readyBall.radius && readyBall.y > -readyBall.radius) {
-		readyBall.y = readyBall.radius;
-		readyBall.vy *= -1;
+
+	//checks if ball is past boundaries
+	if(readyBall.x < -readyBall.radius || readyBall.x > width + readyBall.radius || readyBall.y < -readyBall.radius || readyBall.y > height + readyBall.radius) {
+		pastBoundary = true;
 	}
-	if (readyBall.y > height - readyBall.radius && readyBall.y < height + readyBall.radius) {
-		readyBall.y = height - readyBall.radius;
-		readyBall.vy *= -1;
+
+	//shifts balls in turret once readyBall is past boundary
+	if(pastBoundary) {
+		balls.shift();
+		addBall();
+		isReleased = false;
 	}
+	
 	//Change position of ball
 	readyBall.x += readyBall.vx;
 	readyBall.y -= readyBall.vy;
