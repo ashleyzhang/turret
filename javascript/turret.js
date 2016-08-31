@@ -153,6 +153,7 @@ function spinTurret() {
 	});
 }
 
+var speed;
 var isReleased;
 var pastBorder;
 var pastBoundary;
@@ -171,7 +172,7 @@ function releaseBall() {
     	};
 
 		//Sets ball velocity
-		var speed = 3;
+		speed = 3;
 		readyBall.vx = speed * Math.cos(readyBall.releaseAngle);
 		readyBall.vy = speed * Math.sin(readyBall.releaseAngle);
 
@@ -313,7 +314,7 @@ function endScreen() {
 
 function gameOver() {
 	var isGameOver = false;
-	if(lives === 0) {
+	if(lives <= 0) {
 		isGameOver = true;
 	}
 	if (isGameOver) {

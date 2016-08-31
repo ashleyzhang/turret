@@ -62,7 +62,10 @@ function startGame() {
 	lives = 5;
 
 	//Releases ball when clicked if a ball has not been released
+	canvas.removeEventListener("click", startGame);
+	canvas.removeEventListener("touchmove", startGame);
 	canvas.addEventListener("click", releaseBall);
+	canvas.addEventListener("touchmove", releaseBall);
 
 	nextFrame();
 }
