@@ -4,7 +4,15 @@ function nextFrame() {
 	if(isReleased) {
 		freeMove();
 	}
-	setTimeout(nextFrame, 25);
+	if(!gameOver()) {
+		setTimeout(nextFrame, 15);
+	}
+	else {
+		canvas.addEventListener("click", startGame);
+		canvas.addEventListener("touchmove", startGame);
+		canvas.removeEventListener("click", releaseBall);
+		canvas.removeEventListener("touchmove", releaseBall);
+	}
 }
 function drawFrame() {
 	//Clear canvas before drawing
@@ -14,6 +22,12 @@ function drawFrame() {
 	context.rect(0, 0, width, height);
     context.fillStyle = backgroundColor;
     context.fill();
+
+    //Draw score
+	drawText(border.thickness + width / 20, border.thickness + height / 15, "score: " + score);
+
+	//Draw number of lives
+	drawText(border.thickness + width / 20, border.thickness + height / 8, "lives: " + lives);
 
 	//Draw border
 	drawBorder(border.thickness, border.color);
@@ -44,6 +58,12 @@ function drawFrame() {
 	if(isReleased) {
 		drawBall(readyBall.x, readyBall.y, readyBall.radius, readyBall.color);
 	}
+}
+
+function drawText(x, y, text) {
+	context.font = "30px Arial";
+	context.fillStyle = "grey"
+	context.fillText(text, x, y);
 }
 
 //Draws four rectangles on the edge of the screen
@@ -138,26 +158,28 @@ var pastBorder;
 var pastBoundary;
 //Releases ball from turret
 function releaseBall() {
-    readyBall = {
-		x: balls[0].x,
-		y: balls[0].y,
-		vx: 0,
-		vy: 0,
-		numBalls: balls[0].numBalls,
-        radius: balls[0].radius,
-        color: balls[0].color,
-        releaseAngle: -turret.startAngle
-    };
+	if(!isReleased) {
+		readyBall = {
+			x: balls[0].x,
+			y: balls[0].y,
+			vx: 0,
+			vy: 0,
+			numBalls: balls[0].numBalls,
+        	radius: balls[0].radius,
+        	color: balls[0].color,
+        	releaseAngle: -turret.startAngle
+    	};
 
-	//Sets ball velocity
-	var speed = turret.spinSpeed * turret.radius;
-	readyBall.vx = speed * Math.cos(readyBall.releaseAngle);
-	readyBall.vy = speed * Math.sin(readyBall.releaseAngle);
+		//Sets ball velocity
+		var speed = 3;
+		readyBall.vx = speed * Math.cos(readyBall.releaseAngle);
+		readyBall.vy = speed * Math.sin(readyBall.releaseAngle);
 
-	isReleased = true;
+		isReleased = true;
 
-	pastBorder = false;
-	pastBoundary = false;
+		pastBorder = false;
+		pastBoundary = false;
+	}
 }
 
 var t;
@@ -251,6 +273,12 @@ function freeMove() {
 	//checks if ball is past boundaries
 	if(readyBall.x < -readyBall.radius || readyBall.x > width + readyBall.radius || readyBall.y < -readyBall.radius || readyBall.y > height + readyBall.radius) {
 		pastBoundary = true;
+		if(t.color === readyBall.color) {
+			score++;
+		}
+		else {
+			lives--;
+		}
 	}
 
 	//shifts balls in turret once readyBall is past boundary
@@ -264,3 +292,35 @@ function freeMove() {
 	readyBall.x += readyBall.vx;
 	readyBall.y -= readyBall.vy;
 }
+
+function endScreen() {
+	context.clearRect(0, 0, width, height);
+	context.fillStyle = "grey";
+	context.fillRect(0, 0, width, height);
+    context.font = "100px Arial";
+    context.fillStyle = "white";
+    context.textAlign = "center";
+    context.fillText("Game Over", width/2, height/3);
+    context.font = "80px Arial";
+    context.fillStyle = "white";
+    context.textAlign = "center";
+    context.fillText("Score: " + score, width/2, height/2);
+    context.font = "90px Arial";
+    context.fillStyle = "white";
+    context.textAlign = "center";
+    context.fillText("Click to Play Again", width/2, (height*3)/4);
+}
+
+function gameOver() {
+	var isGameOver = false;
+	if(lives === 0) {
+		isGameOver = true;
+	}
+	if (isGameOver) {
+		console.log("Game Over");
+		endScreen();
+		context.textAlign = "left";
+	}
+	return isGameOver;
+}
+

@@ -3,6 +3,10 @@ var context;
 var height;
 var width;
 const padding = 20;
+
+var score;
+var lives;
+
 function init() {
 	canvas = document.getElementById('turret');
 	context = canvas.getContext('2d');
@@ -43,7 +47,7 @@ function startGame() {
     	color: "black",
     	startAngle: 0,
     	endAngle: Math.PI * (ballNum - 1) / (ballNum / 2),
-		spinSpeed: Math.PI / (ballNum * 3)
+		spinSpeed: Math.PI / (ballNum * 5)
 	};
 
 	border = {
@@ -54,7 +58,10 @@ function startGame() {
 	initBalls(1);
 	initTargets(1);
 
-	//Releases ball when clicked
+	score = 0;
+	lives = 5;
+
+	//Releases ball when clicked if a ball has not been released
 	canvas.addEventListener("click", releaseBall);
 
 	nextFrame();
