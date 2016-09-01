@@ -2,22 +2,17 @@ function nextFrame() {
 	//increases power as mouse is pressed
 	spinTurret();
 	drawFrame();
-	if(mouseDown && !isReleased) {
-		increaseSpeed();
-	}
 	if(isReleased) {
 		freeMove();
 	}
 	if(!gameOver()) {
-		setTimeout(nextFrame, 8);
+		setTimeout(nextFrame, 6);
 	}
 	else {
 		canvas.addEventListener("click", startGame);
 		canvas.addEventListener("touchmove", startGame);
-		canvas.removeEventListener("mouseup", releaseBall);
-		canvas.removeEventListener("mousedown", function() {mouseDown = true});
-		canvas.removeEventListener("touchend", releaseBall);
-		canvas.removeEventListener("touchstart", function() {mouseDown = true});
+		canvas.removeEventListener("click", releaseBall);
+		canvas.removeEventListener("touchmove", releaseBall);
 	}
 }
 
@@ -35,9 +30,6 @@ function drawFrame() {
 
 	//Draw number of lives
 	drawText(border.thickness + width / 20, border.thickness + height / 8, "lives: " + lives);
-
-	//Draw power indicator
-	drawPower(border.thickness + width * 13 / 20, border.thickness + height / 15, speed);
 
 	//Draw border
 	drawBorder(border.thickness, border.color);
@@ -70,10 +62,6 @@ function drawFrame() {
 	}
 }
 
-function drawPower(x, y, power) {
-	context.fillStyle = "lightgreen";
-	context.fillRect(x, y, (power - 1.5) * (width / 16), height / 20);
-}
 
 function drawText(x, y, text) {
 	context.font = width / 30 + "px Arial";
@@ -147,17 +135,6 @@ function addBall() {
 	balls.push(ball);
 }
 
-//increases speed of released ball
-function increaseSpeed() {
-	var maxSpeed = 4;
-	if(speed <= maxSpeed) {
-		speed += .01;
-	}
-	else {
-		speed = 1.5;
-	}
-}
-
 function spinTurret() {
 	turret.startAngle += turret.spinSpeed;
 	turret.endAngle += turret.spinSpeed;
@@ -179,17 +156,12 @@ function spinTurret() {
 	});
 }
 
-var mouseDown;
-var speed;
 var isReleased;
 var pastBorder;
 var pastBoundary;
 //Releases ball from turret
 function releaseBall() {
 	if(!isReleased) {
-
-		mouseDown = false;
-
 		readyBall = {
 			x: balls[0].x,
 			y: balls[0].y,
@@ -202,6 +174,7 @@ function releaseBall() {
     	};
 
 		//Sets ball velocity
+		var speed = 3;
 		readyBall.vx = speed * Math.cos(readyBall.releaseAngle);
 		readyBall.vy = speed * Math.sin(readyBall.releaseAngle);
 
@@ -209,9 +182,11 @@ function releaseBall() {
 
 		pastBorder = false;
 		pastBoundary = false;
+		numBounces = 0;
 	}
 }
 
+var numBounces;
 var t;
 //Moves readyBall after released from turret
 function freeMove() {
@@ -285,18 +260,22 @@ function freeMove() {
 		if(readyBall.x < readyBall.radius + border.thickness && readyBall.x > -readyBall.radius + border.thickness) {
 			readyBall.x = readyBall.radius + border.thickness;
 			readyBall.vx *= -1;
+			numBounces++;
 		}
 		if(readyBall.x > width - readyBall.radius - border.thickness && readyBall.x < width + readyBall.radius - border.thickness) {
 			readyBall.x = width - readyBall.radius - border.thickness;
 			readyBall.vx *= -1;
+			numBounces++;
 		}
 		if(readyBall.y < readyBall.radius + border.thickness && readyBall.y > -readyBall.radius + border.thickness) {
 			readyBall.y = readyBall.radius + border.thickness;
 			readyBall.vy *= -1;
+			numBounces++;
 		}
 		if(readyBall.y > height - readyBall.radius - border.thickness && readyBall.y < height + readyBall.radius - border.thickness) {
 			readyBall.y = height - readyBall.radius - border.thickness;
 			readyBall.vy *= -1;
+			numBounces++;
 		}
 	}
 
@@ -305,6 +284,9 @@ function freeMove() {
 		pastBoundary = true;
 		if(t.color === readyBall.color) {
 			score++;
+			if(score % 5 === 0) {
+				turret.spinSpeed += (turret.spinSpeed / 4);
+			}
 		}
 		else {
 			lives--;
@@ -312,11 +294,10 @@ function freeMove() {
 	}
 
 	//shifts balls in turret once readyBall is past boundary
-	if(pastBoundary) {
+	if(pastBoundary || numBounces > 20) {
 		balls.shift();
 		addBall();
 		isReleased = false;
-		speed = 1.5;
 	}
 	
 	//Change position of ball

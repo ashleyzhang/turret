@@ -64,10 +64,8 @@ function startGame() {
 	//Releases ball when clicked if a ball has not been released
 	canvas.removeEventListener("click", startGame);
 	canvas.removeEventListener("touchmove", startGame);
-	canvas.addEventListener("mouseup", releaseBall);
-	canvas.addEventListener("mousedown", function() {mouseDown = true});
-	canvas.addEventListener("touchend", releaseBall);
-	canvas.addEventListener("touchstart", function() {mouseDown = true});
+	canvas.addEventListener("click", releaseBall);
+	canvas.addEventListener("touchmove", releaseBall);
 
 	nextFrame();
 }
@@ -197,12 +195,12 @@ function generateRandomY(side, size) {
 
 //generate random width of targets
 function generateRandomSize() {
-	var size = Math.random() * (balls[0].radius * 4) + (balls[0].radius * 3);
+	var size = Math.random() * (balls[0].radius * 3.5) + (balls[0].radius * 3.5);
 	return size;
 }
 
 //array of colors used
-var colors = ["lightpink", "lightsalmon", "palegreen", "turquoise", "plum", "palegoldenrod", "powderblue", "slateblue", "orange", "rosybrown"];
+var colors = ["lightpink", "salmon", "palegreen", "turquoise", "plum", "palegoldenrod", "powderblue", "slateblue", "orange", "rosybrown"];
 
 //generate random colors of balls
 function generateRandomColors() {
