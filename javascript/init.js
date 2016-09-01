@@ -47,7 +47,7 @@ function startGame() {
     	color: "black",
     	startAngle: 0,
     	endAngle: Math.PI * (ballNum - 1) / (ballNum / 2),
-		spinSpeed: Math.PI / (ballNum * 5)
+		spinSpeed: Math.PI / (ballNum * 12)
 	};
 
 	border = {
@@ -64,8 +64,10 @@ function startGame() {
 	//Releases ball when clicked if a ball has not been released
 	canvas.removeEventListener("click", startGame);
 	canvas.removeEventListener("touchmove", startGame);
-	canvas.addEventListener("click", releaseBall);
-	canvas.addEventListener("touchmove", releaseBall);
+	canvas.addEventListener("mouseup", releaseBall);
+	canvas.addEventListener("mousedown", function() {mouseDown = true});
+	canvas.addEventListener("touchend", releaseBall);
+	canvas.addEventListener("touchstart", function() {mouseDown = true});
 
 	nextFrame();
 }

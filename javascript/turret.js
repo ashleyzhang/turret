@@ -1,19 +1,26 @@
 function nextFrame() {
+	//increases power as mouse is pressed
 	spinTurret();
 	drawFrame();
+	if(mouseDown && !isReleased) {
+		increaseSpeed();
+	}
 	if(isReleased) {
 		freeMove();
 	}
 	if(!gameOver()) {
-		setTimeout(nextFrame, 15);
+		setTimeout(nextFrame, 8);
 	}
 	else {
 		canvas.addEventListener("click", startGame);
 		canvas.addEventListener("touchmove", startGame);
-		canvas.removeEventListener("click", releaseBall);
-		canvas.removeEventListener("touchmove", releaseBall);
+		canvas.removeEventListener("mouseup", releaseBall);
+		canvas.removeEventListener("mousedown", function() {mouseDown = true});
+		canvas.removeEventListener("touchend", releaseBall);
+		canvas.removeEventListener("touchstart", function() {mouseDown = true});
 	}
 }
+
 function drawFrame() {
 	//Clear canvas before drawing
 	context.clearRect(0, 0, width, height);
@@ -28,6 +35,9 @@ function drawFrame() {
 
 	//Draw number of lives
 	drawText(border.thickness + width / 20, border.thickness + height / 8, "lives: " + lives);
+
+	//Draw power indicator
+	drawPower(border.thickness + width * 13 / 20, border.thickness + height / 15, speed);
 
 	//Draw border
 	drawBorder(border.thickness, border.color);
@@ -60,8 +70,13 @@ function drawFrame() {
 	}
 }
 
+function drawPower(x, y, power) {
+	context.fillStyle = "lightgreen";
+	context.fillRect(x, y, (power - 1.5) * (width / 16), height / 20);
+}
+
 function drawText(x, y, text) {
-	context.font = "30px Arial";
+	context.font = width / 30 + "px Arial";
 	context.fillStyle = "grey"
 	context.fillText(text, x, y);
 }
@@ -132,6 +147,17 @@ function addBall() {
 	balls.push(ball);
 }
 
+//increases speed of released ball
+function increaseSpeed() {
+	var maxSpeed = 4;
+	if(speed <= maxSpeed) {
+		speed += .01;
+	}
+	else {
+		speed = 1.5;
+	}
+}
+
 function spinTurret() {
 	turret.startAngle += turret.spinSpeed;
 	turret.endAngle += turret.spinSpeed;
@@ -153,6 +179,7 @@ function spinTurret() {
 	});
 }
 
+var mouseDown;
 var speed;
 var isReleased;
 var pastBorder;
@@ -160,6 +187,9 @@ var pastBoundary;
 //Releases ball from turret
 function releaseBall() {
 	if(!isReleased) {
+
+		mouseDown = false;
+
 		readyBall = {
 			x: balls[0].x,
 			y: balls[0].y,
@@ -172,7 +202,6 @@ function releaseBall() {
     	};
 
 		//Sets ball velocity
-		speed = 3;
 		readyBall.vx = speed * Math.cos(readyBall.releaseAngle);
 		readyBall.vy = speed * Math.sin(readyBall.releaseAngle);
 
@@ -287,6 +316,7 @@ function freeMove() {
 		balls.shift();
 		addBall();
 		isReleased = false;
+		speed = 1.5;
 	}
 	
 	//Change position of ball
@@ -298,15 +328,15 @@ function endScreen() {
 	context.clearRect(0, 0, width, height);
 	context.fillStyle = "grey";
 	context.fillRect(0, 0, width, height);
-    context.font = "100px Arial";
+    context.font = width / 10 + "px Arial";
     context.fillStyle = "white";
     context.textAlign = "center";
     context.fillText("Game Over", width/2, height/3);
-    context.font = "80px Arial";
+    context.font = width / 11 + "px Arial";
     context.fillStyle = "white";
     context.textAlign = "center";
     context.fillText("Score: " + score, width/2, height/2);
-    context.font = "90px Arial";
+    context.font = width / 10.5 + "px Arial";
     context.fillStyle = "white";
     context.textAlign = "center";
     context.fillText("Click to Play Again", width/2, (height*3)/4);
