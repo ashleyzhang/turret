@@ -174,7 +174,7 @@ function releaseBall() {
     	};
 
 		//Sets ball velocity
-		var speed = 3;
+		var speed = 4;
 		readyBall.vx = speed * Math.cos(readyBall.releaseAngle);
 		readyBall.vy = speed * Math.sin(readyBall.releaseAngle);
 
