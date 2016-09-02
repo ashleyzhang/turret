@@ -284,9 +284,7 @@ function freeMove() {
 		pastBoundary = true;
 		if(t.color === readyBall.color) {
 			score++;
-			if(score % 1 === 0) {
-				turret.spinSpeed += (turret.spinSpeed / 4);
-			}
+			turret.spinSpeed += (turret.spinSpeed / 18);
 		}
 		else {
 			lives--;
@@ -294,7 +292,7 @@ function freeMove() {
 	}
 
 	//shifts balls in turret once readyBall is past boundary
-	if(pastBoundary || numBounces > 20) {
+	if(pastBoundary || numBounces > 25) {
 		balls.shift();
 		addBall();
 		isReleased = false;
