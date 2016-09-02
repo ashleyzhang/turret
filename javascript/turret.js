@@ -6,7 +6,7 @@ function nextFrame() {
 		freeMove();
 	}
 	if(!gameOver()) {
-		setTimeout(nextFrame, 6);
+		setTimeout(nextFrame, 5);
 	}
 	else {
 		canvas.addEventListener("click", startGame);
@@ -284,7 +284,7 @@ function freeMove() {
 		pastBoundary = true;
 		if(t.color === readyBall.color) {
 			score++;
-			if(score % 5 === 0) {
+			if(score % 1 === 0) {
 				turret.spinSpeed += (turret.spinSpeed / 4);
 			}
 		}
