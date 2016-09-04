@@ -261,21 +261,33 @@ function freeMove() {
 			readyBall.x = readyBall.radius + border.thickness;
 			readyBall.vx *= -1;
 			numBounces++;
+			if(numBounces > 0 && numBounces % 5 === 0) {
+				lives++;
+			}
 		}
 		if(readyBall.x > width - readyBall.radius - border.thickness && readyBall.x < width + readyBall.radius - border.thickness) {
 			readyBall.x = width - readyBall.radius - border.thickness;
 			readyBall.vx *= -1;
 			numBounces++;
+			if(numBounces > 0 && numBounces % 5 === 0) {
+				lives++;
+			}
 		}
 		if(readyBall.y < readyBall.radius + border.thickness && readyBall.y > -readyBall.radius + border.thickness) {
 			readyBall.y = readyBall.radius + border.thickness;
 			readyBall.vy *= -1;
 			numBounces++;
+			if(numBounces > 0 && numBounces % 5 === 0) {
+				lives++;
+			}
 		}
 		if(readyBall.y > height - readyBall.radius - border.thickness && readyBall.y < height + readyBall.radius - border.thickness) {
 			readyBall.y = height - readyBall.radius - border.thickness;
 			readyBall.vy *= -1;
 			numBounces++;
+			if(numBounces > 0 && numBounces % 5 === 0) {
+				lives++;
+			}
 		}
 	}
 
